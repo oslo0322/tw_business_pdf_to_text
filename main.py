@@ -84,5 +84,9 @@ for idx in test_data.index:
     result = model_data.predict([data_pos])[0]
     test_data.loc[idx, "column"] = result
 
+# test_data[["content", "x0", "y1", "column"]].sort("column").to_csv("test.csv", encoding="utf8", index=False)
+
 test_data = test_data.drop(["x0", "y1"], axis=1)
-print test_data.groupby(["row", "column"], as_index=False).sum()
+test_data["content"] = test_data["content"].map(lambda x: "%s" % x)
+gby_data = test_data.groupby(["row", "column"]).sum()
+print gby_data.unstack('column')
