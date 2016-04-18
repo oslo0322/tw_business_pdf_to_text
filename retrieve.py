@@ -25,7 +25,7 @@ def get_data():
 
 
 def run():
-    get_data()
+    # get_data()
     for _pdf_name in glob.glob("3*.pdf"):
         main(_pdf_name)
 
@@ -37,5 +37,5 @@ def merge_csv():
 
     result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
 
-# run()
-merge_csv()
+run()
+# merge_csv()

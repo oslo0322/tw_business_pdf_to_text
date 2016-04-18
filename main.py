@@ -54,12 +54,12 @@ class My(TextConverter):
 
 def find_match_string(string):
     pattern = re.compile(r"(?P<id>[A-Z0-9]{7})", flags=re.MULTILINE)
-    try:
-        for match in pattern.finditer(string):
-            if match.groupdict()["id"] in NEED_BUSSINESS_ID:
-                return True
-    except:
-        return False
+    # try:
+    for match in pattern.finditer(string):
+        if match.groupdict()["id"] in NEED_BUSSINESS_ID:
+            return True
+    # except:
+    #     return False
     return False
 
 
@@ -74,19 +74,20 @@ def read_pdf_data(filename):
     result_data = []
     count = 0
     for page in PDFPage.get_pages(fp, set()):
-        # if count == 7:
-        interpreter.process_page(page)
-        result_data.append(device.group)
-        device.word = ""
-        device.group = []
-        device.word_pos_info = {}
+        if count >= 52 and count < 53:
+            interpreter.process_page(page)
+            result_data.append(device.group)
+            device.word = ""
+            device.group = []
+            device.word_pos_info = {}
         count += 1
+        # break
     return result_data
 
 
 def get_row_group(data, row_name):
     _temp = data[row_name].value_counts()
-    group_list = _temp[_temp == 10].index.tolist()
+    group_list = _temp[_temp >= 10].index.tolist()
     group_list.sort()
     group_list.insert(0, 0)
     group_list.insert(len(group_list), group_list[-1] + 100)
@@ -125,19 +126,25 @@ def main(filename):
             pdf_data.loc[idx, "column"] = result
 
         # 產生train的資料
-        # pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv("test.csv", encoding="utf8", index=False)
+        pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv("test.csv", encoding="utf8", index=False)
 
+        pdf_data = pdf_data[pdf_data["column"] < 100]
         pdf_data = pdf_data.drop(["x0", "y1"], axis=1)
         pdf_data["content"] = pdf_data["content"].map(lambda x: "%s" % x)
+
         gby_data = pdf_data.groupby(["row", "column"]).sum().unstack('column')
         gby_data.columns = range(gby_data.shape[1])
         gby_data.index = range(gby_data.shape[0])
-        # gby_data = gby_data.dropna(0)
+        gby_data = gby_data.dropna()
         gby_data = gby_data[(gby_data[0] != u"序號") & (gby_data[0] != 0)]
-        gby_data["is_ok"] = gby_data[7].map(lambda x: find_match_string(x))
+        gby_data["is_ok"] = gby_data[8].map(lambda x: find_match_string(x))
         final_data = final_data.append(gby_data)
 
-    # final_data[0] = final_data[0].astype("int")
+    final_data[0] = final_data[0].astype("int")
     final_data = final_data.sort([0])
     final_data = final_data.reset_index(drop=True)
-    final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
+    print final_data
+    # final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
+
+if __name__ == "__main__":
+    main("test.pdf")
