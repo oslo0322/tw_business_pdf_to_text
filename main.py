@@ -34,7 +34,7 @@ class My(TextConverter):
                 if self.word == "":
                     if "x0" in dir(item):
                         self.word_pos_info = {"x0": item.x0, "y1": item.y0}
-                if item.get_text() == " ":
+                if item.get_text() == " ":  # 將空白也判斷成下一個句子
                     self.word_pos_info.update({"content": self.word.strip()})
                     self.group.append(self.word_pos_info.copy())
                     self.word_pos_info = {}
@@ -43,7 +43,6 @@ class My(TextConverter):
                     self.word += item.get_text()
 
             if isinstance(item, LTTextBox):
-                # self.word_pos_info.update({"x1":item.x1})
                 self.word_pos_info.update({"content": self.word.strip()})
                 self.group.append(self.word_pos_info.copy())
                 self.word_pos_info = {}
@@ -87,6 +86,7 @@ def read_pdf_data(filename):
 
 def get_row_group(data, row_name):
     _temp = data[row_name].value_counts()
+    # 將大於10的list，當作是正常的，有可能因為名字或者其他因素造成多切
     group_list = _temp[_temp >= 10].index.tolist()
     group_list.sort()
     group_list.insert(0, 0)
@@ -126,7 +126,7 @@ def main(filename):
             pdf_data.loc[idx, "column"] = result
 
         # 產生train的資料
-        pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv("test.csv", encoding="utf8", index=False)
+        # pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv("test.csv", encoding="utf8", index=False)
 
         pdf_data = pdf_data[pdf_data["column"] < 100]
         pdf_data = pdf_data.drop(["x0", "y1"], axis=1)
