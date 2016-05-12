@@ -73,12 +73,11 @@ def read_pdf_data(filename):
     result_data = []
     count = 0
     for page in PDFPage.get_pages(fp, set()):
-        if count >= 52 and count < 53:
-            interpreter.process_page(page)
-            result_data.append(device.group)
-            device.word = ""
-            device.group = []
-            device.word_pos_info = {}
+        interpreter.process_page(page)
+        result_data.append(device.group)
+        device.word = ""
+        device.group = []
+        device.word_pos_info = {}
         count += 1
         # break
     return result_data
@@ -107,6 +106,7 @@ def main(filename):
     #         f.write(json.dumps(pdf_data_list))
 
     final_data = pandas.DataFrame()
+    counting = 0
     for pdf_single_data in pdf_data_list:
         pdf_data = pandas.DataFrame(pdf_single_data)
         pdf_data["column"] = -1
@@ -126,7 +126,9 @@ def main(filename):
             pdf_data.loc[idx, "column"] = result
 
         # 產生train的資料
-        # pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv("test.csv", encoding="utf8", index=False)
+        # sample_file_name = "sample_%s_%d.csv" % (filename, counting)
+        # if os.path.exists(sample_file_name) is False:
+        #     pdf_data[["content", "x0", "y1", "column"]].sort(["column"]).to_csv(sample_file_name, encoding="utf8", index=False)
 
         pdf_data = pdf_data[pdf_data["column"] < 100]
         pdf_data = pdf_data.drop(["x0", "y1"], axis=1)
@@ -139,12 +141,13 @@ def main(filename):
         gby_data = gby_data[(gby_data[0] != u"序號") & (gby_data[0] != 0)]
         gby_data["is_ok"] = gby_data[8].map(lambda x: find_match_string(x))
         final_data = final_data.append(gby_data)
+        counting += 1
 
-    final_data[0] = final_data[0].astype("int")
+    final_data[0] = final_data[0].convert_objects(convert_numeric=True)
     final_data = final_data.sort([0])
     final_data = final_data.reset_index(drop=True)
-    print final_data
-    # final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
+    # print final_data
+    final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
 
 if __name__ == "__main__":
     main("test.pdf")

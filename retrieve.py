@@ -7,8 +7,11 @@ import glob
 import pandas
 
 
-def get_data():
-    url = "http://gcis.nat.gov.tw/moeadsBF/bms/report.jsp?method=first&agencyCode=allbf&showGcisLocation=true&showBusi=true&showFact=false"
+def get_data(is_compay=False):
+    if is_compay is False:
+        url = "http://gcis.nat.gov.tw/moeadsBF/bms/report.jsp?method=first&agencyCode=allbf&showGcisLocation=true&showBusi=true&showFact=false"
+    else:
+        url = "http://gcis.nat.gov.tw/pub/cmpy/reportCity.jsp"
 
     webfile = urllib.urlopen(url)
     webcontext = webfile.read()
@@ -37,5 +40,5 @@ def merge_csv():
 
     result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
 
-run()
-# merge_csv()
+# run()
+merge_csv()
