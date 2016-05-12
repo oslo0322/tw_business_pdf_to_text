@@ -50,6 +50,11 @@ class My(TextConverter):
         render(ltpage)
         return
 
+    def reset(self):
+        self.word = ""
+        self.group = []
+        self.word_pos_info = {}
+
 
 def find_match_string(string):
     pattern = re.compile(r"(?P<id>[A-Z0-9]{7})", flags=re.MULTILINE)
@@ -69,6 +74,7 @@ def read_pdf_data(filename):
     laparams = LAParams()
     laparams.line_margin = 0.01
     device = My(rsrcmgr, sys.stdout, laparams=laparams)
+    device.reset()
     interpreter = PDFPageInterpreter(rsrcmgr, device)
     result_data = []
     count = 0
@@ -80,6 +86,7 @@ def read_pdf_data(filename):
         device.word_pos_info = {}
         count += 1
         # break
+    fp.close()
     return result_data
 
 
@@ -95,7 +102,6 @@ def get_row_group(data, row_name):
 
 def main(filename):
     model_data = get_model_result()
-
     pdf_data_list = read_pdf_data(filename)
     # if os.path.exists("cache.json") is True:
     #     with open("cache.json", "r") as f:

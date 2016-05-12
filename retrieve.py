@@ -34,8 +34,9 @@ def get_data(is_compay=False):
 
 
 def run(is_compay):
-    get_data(is_compay)
+    # get_data(is_compay)
     for _pdf_name in glob.glob("3*.pdf"):
+        print "current", _pdf_name
         main(_pdf_name)
 
 
@@ -46,5 +47,5 @@ def merge_csv():
 
     result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
 
-run(is_compay=True)
-# merge_csv()
+# run(is_compay=False)
+merge_csv()
