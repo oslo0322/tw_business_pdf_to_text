@@ -21,14 +21,20 @@ def get_data(is_compay=False):
     for li in lis:
         test = li.find("a")
         url = test["href"]
-        if "bmsItem" in url and "setup" in url:
-            real_url = "http://gcis.nat.gov.tw/moeadsBF" + url[2:]
-            print real_url
-            urllib.urlretrieve(real_url, real_url.split("=")[-1])
+        if "bmsItem" in url or "cmpyCityItem" in url:
+            if "setup" in url:
+                if is_compay is False:
+                    real_url = "http://gcis.nat.gov.tw/moeadsBF" + url[2:]
+                    print real_url
+                    urllib.urlretrieve(real_url, real_url.split("=")[-1])
+                else:
+                    real_url = "http://gcis.nat.gov.tw/pub" + url[2:]
+                    print real_url
+                    urllib.urlretrieve(real_url, real_url.split("=")[-1])
 
 
-def run():
-    # get_data()
+def run(is_compay):
+    get_data(is_compay)
     for _pdf_name in glob.glob("3*.pdf"):
         main(_pdf_name)
 
@@ -40,5 +46,5 @@ def merge_csv():
 
     result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
 
-# run()
-merge_csv()
+run(is_compay=True)
+# merge_csv()
