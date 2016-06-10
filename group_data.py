@@ -46,8 +46,9 @@ def plot_result(knn, step):
     plt.savefig("KNN_%s_STEP_%s.png" % (knn, step))
     # plt.show()
 
-plot_result(knn=1, step=3)
-plot_result(knn=2, step=3)
-plot_result(knn=4, step=3)
-plot_result(knn=5, step=3)
-plot_result(knn=10, step=3)
+if __name__ == "__main__":
+    plot_result(knn=1, step=3)
+    plot_result(knn=2, step=3)
+    plot_result(knn=4, step=3)
+    plot_result(knn=5, step=3)
+    plot_result(knn=10, step=3)
