@@ -117,7 +117,7 @@ def main(filename):
         pdf_data["column"] = -1
         pdf_data["row"] = -1
 
-        pdf_data = pdf_data.sort_values(["x0", "y1"]).reset_index(drop=True)
+        pdf_data = pdf_data.sort_values(["x0", "y1"], ascending=[1, 0]).reset_index(drop=True)
 
         x_group = pdf_data.groupby(pandas.cut(pdf_data["x0"], get_column_groups()))
         column_group_dict = x_group.groups.items()
@@ -150,11 +150,11 @@ def main(filename):
             gby_data["is_ok"] = gby_data[8].map(lambda x: find_match_string(x))
             final_data = final_data.append(gby_data)
 
-    final_data[0] = pandas.to_numeric(final_data[0], errors="ignore")
-    final_data = final_data.sort_values([0])
-    print final_data.reset_index(drop=True)
-    # final_data = final_data.reset_index(drop=True)
-    # final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
+    if final_data.empty is False:
+        final_data[0] = pandas.to_numeric(final_data[0], errors="ignore")
+        final_data = final_data.sort_values([0])
+        final_data = final_data.reset_index(drop=True)
+        final_data.to_csv("%s.csv" % filename, encoding="utf8", index=False)
 
 if __name__ == "__main__":
     main("1.pdf")

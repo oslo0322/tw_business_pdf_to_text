@@ -37,19 +37,23 @@ def get_data(is_company=False):
 
 
 def run(is_company):
-    get_data(is_company)
     for _pdf_name in glob.glob("3*.pdf"):
         print "current", _pdf_name
         main(_pdf_name, is_company)
         os.remove(_pdf_name)
 
 
-def merge_csv():
+def merge_csv(is_company):
     result = pandas.DataFrame([])
     for _csv_name in glob.glob("3*.pdf.csv"):
         result = result.append(pandas.read_csv(_csv_name))
+        os.remove(_csv_name)
+    result = result.reset_index(drop=True)
+    file_name = "all_company" if is_company else "all_business"
+    result.to_csv("%s.csv" % file_name, encoding="utf8", index=False)
 
-    result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
-
-run(is_company=False)
-merge_csv()
+if __name__ == "__main__":
+    is_company = False
+    get_data(is_company)
+    run(is_company)
+    merge_csv(is_company)
