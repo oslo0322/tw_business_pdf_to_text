@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import glob
 import urllib
+import os
 
 import pandas
 from bs4 import BeautifulSoup
@@ -40,6 +41,7 @@ def run(is_company):
     for _pdf_name in glob.glob("3*.pdf"):
         print "current", _pdf_name
         main(_pdf_name, is_company)
+        os.remove(_pdf_name)
 
 
 def merge_csv():
@@ -49,5 +51,5 @@ def merge_csv():
 
     result.to_csv("%s.csv" % "all", encoding="utf8", index=False)
 
-# run(is_company=False)
+run(is_company=False)
 merge_csv()
