@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
+from collections import OrderedDict
 
 import pandas
 from pdfminer.converter import TextConverter
@@ -31,7 +32,6 @@ class My(TextConverter):
                     if "x0" in dir(item):
                         self.word_pos_info = {"x0": item.x0, "y1": item.y0}
                 if item.get_text() == " " or item.get_text() == "\n":  # 將空白也判斷成下一個句子
-
                     self.word_pos_info.update({"content": self.word.strip()})
                     self.group.append(self.word_pos_info.copy())
                     self.word_pos_info = {}
@@ -65,7 +65,7 @@ def find_match_string(string):
 
 
 def read_pdf_data(filename):
-    fp = open(filename, 'rb')
+    fp = open(filename, "rb")
 
     rsrcmgr = PDFResourceManager()
     laparams = LAParams()
@@ -76,13 +76,16 @@ def read_pdf_data(filename):
     result_data = []
     count = 0
     for page in PDFPage.get_pages(fp, set()):
+        # if count != 9:
+        #     count += 1
+        #     continue
         interpreter.process_page(page)
         result_data.append(device.group)
         device.word = ""
         device.group = []
         device.word_pos_info = {}
         count += 1
-        # break
+
     fp.close()
     return result_data
 
@@ -101,6 +104,19 @@ def get_column_groups():
     return [0, 40.00, 90.0, 175.0, 295.0, 360.0, 520.0, 600.0, 655.0, 800]
 
 
+def index_keys_dict():
+    return OrderedDict([
+        ("(0, 40]", 0),
+        ("(40, 90]", 1),
+        ("(90, 175]", 2),
+        ("(175, 295]", 3),
+        ("(295, 360]", 4),
+        ("(360, 520]", 5),
+        ("(520, 600]", 6),
+        ("(600, 655]", 7),
+        ("(655, 800]", 8)])
+
+
 def main(filename):
     pdf_data_list = read_pdf_data(filename)
     final_data = pandas.DataFrame()
@@ -115,7 +131,6 @@ def main(filename):
         pdf_data["row"] = -1
 
         pdf_data = pdf_data.sort_values(["x0", "y1"], ascending=[1, 0]).reset_index(drop=True)
-
         x_group = pdf_data.groupby(pandas.cut(pdf_data["x0"], get_column_groups()))
         column_group_dict = x_group.groups.items()
 
@@ -123,10 +138,9 @@ def main(filename):
             pdf_data.loc[column_group, "column"] = key
 
         # 這裡做的事情是保證順序一致，因為cut會導致index的順序亂掉，這邊會調整回來
-        unique_string_list = pdf_data["column"].unique()
-        for idx, list_value in enumerate(unique_string_list):
-            pdf_data = pdf_data.replace({list_value: idx})
-
+        # unique_string_list = pdf_data["column"].unique()
+        # for idx, list_value in enumerate(unique_string_list):
+        #     pdf_data = pdf_data.replace({list_value: idx})
         group_list = get_row_group(pdf_data, "y1")
         y_group = pdf_data.groupby(pandas.cut(pdf_data["y1"], group_list))
         row_group_list = y_group.groups.values()
@@ -134,12 +148,25 @@ def main(filename):
         for idx, row_group in enumerate(row_group_list):
             pdf_data.loc[row_group, "row"] = idx
 
-        pdf_data = pdf_data[pdf_data["column"] < 100]
+        # pdf_data = pdf_data[pdf_data["column"] < 100]
         pdf_data = pdf_data.drop(["x0", "y1"], axis=1)
         pdf_data["content"] = pdf_data["content"].map(lambda x: "%s" % x)
-        gby_data = pdf_data.groupby(["row", "column"]).sum().unstack('column')
-        gby_data.columns = range(gby_data.shape[1])
+
+        gby_data = pdf_data.groupby(["row", "column"]).sum().unstack("column")
+
         gby_data.index = range(gby_data.shape[0])
+
+        # gby_data.columns = range(gby_data.shape[1])
+        result_list = []
+        for column_list in  gby_data.columns.levels:
+            if len(column_list) == gby_data.shape[1]:
+                result_list = column_list
+        gby_data.columns = result_list
+        for column_key, column_value in index_keys_dict().items():
+            if column_key in gby_data:
+                gby_data = gby_data.rename(columns={column_key: column_value})
+            else:
+                gby_data[column_value] = ""
         gby_data = gby_data.dropna()
         if gby_data.shape[1] >= 8:
             gby_data = gby_data[(gby_data[0] != u"序號") & (gby_data[0] != 0)]
