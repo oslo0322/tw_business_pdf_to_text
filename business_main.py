@@ -142,6 +142,8 @@ def main(filename):
         pdf_data["content"] = pdf_data["content"].map(lambda x: "%s" % x)
 
         gby_data = pdf_data.groupby(["row", "column"]).sum().unstack('column')
+        if gby_data.empty:
+            continue
         gby_data.columns = range(gby_data.shape[1])
         gby_data.index = range(gby_data.shape[0])
         gby_data = gby_data.dropna()

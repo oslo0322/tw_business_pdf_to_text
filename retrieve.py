@@ -53,7 +53,7 @@ def merge_csv(is_company):
     result.to_csv("%s.csv" % file_name, encoding="utf8", index=False)
 
 if __name__ == "__main__":
-    is_company = True
+    is_company = False
     get_data(is_company)
     run(is_company)
     merge_csv(is_company)
